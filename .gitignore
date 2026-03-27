@@ -377,3 +377,8 @@ FodyWeavers.xsd
 
 # Ignore client-side libraries (managed by package manager)
 CODNOT/CODNOT/wwwroot/lib/
+
+
+*.db
+*.db-shm
+*.db-wal
