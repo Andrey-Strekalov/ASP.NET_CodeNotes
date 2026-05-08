@@ -1,9 +1,10 @@
 ﻿using ASP.NET_CodeNotes.Models;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace ASP.NET_CodeNotes.Data;
 
-public class ApplicationDbContext : DbContext
+public class ApplicationDbContext : IdentityDbContext<User>
 {
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
     {
@@ -18,8 +19,20 @@ public class ApplicationDbContext : DbContext
         base.OnModelCreating(modelBuilder);
 
         modelBuilder.Entity<Tag>()
-            .HasIndex(t => t.Name)
+            .HasIndex(t => new { t.Name, t.OwnerId })
             .IsUnique();
+
+        modelBuilder.Entity<Note>()
+            .HasOne(n => n.Owner)
+            .WithMany(u => u.Notes)
+            .HasForeignKey(n => n.OwnerId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Tag>()
+            .HasOne(t => t.Owner)
+            .WithMany(u => u.Tags)
+            .HasForeignKey(t => t.OwnerId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<NoteTag>()
             .HasOne(nt => nt.Note)

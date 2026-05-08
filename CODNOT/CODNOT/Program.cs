@@ -1,5 +1,7 @@
 using ASP.NET_CodeNotes.Data;
 using ASP.NET_CodeNotes.Models;
+using ASP.NET_CodeNotes.Services;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -9,7 +11,36 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+builder.Services.AddIdentity<User, IdentityRole>(options =>
+    {
+        options.Password.RequireDigit = true;
+        options.Password.RequiredLength = 6;
+        options.Password.RequireNonAlphanumeric = false;
+        options.Password.RequireUppercase = true;
+        options.Password.RequireLowercase = true;
+        options.User.RequireUniqueEmail = true;
+    })
+    .AddEntityFrameworkStores<ApplicationDbContext>()
+    .AddDefaultTokenProviders();
+
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.LoginPath = "/Account/Login";
+    options.LogoutPath = "/Account/Logout";
+    options.AccessDeniedPath = "/Account/Login";
+    options.ExpireTimeSpan = TimeSpan.FromDays(7);
+    options.SlidingExpiration = true;
+});
+
+builder.Services.AddScoped<INoteService, NoteService>();
+builder.Services.AddScoped<ITagService, TagService>();
+
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    await DbInitializer.InitializeAsync(scope.ServiceProvider);
+}
 
 if (!app.Environment.IsDevelopment())
 {
@@ -21,81 +52,11 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
-
-static void SeedData(IServiceProvider serviceProvider)
-{
-    using var scope = serviceProvider.CreateScope();
-    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-
-    context.Database.Migrate();
-
-    //if (context.Notes.Any() || context.Tags.Any())
-    //{
-    //    return;
-    //}
-
-    using var transaction = context.Database.BeginTransaction();
-
-    try
-    {
-        var tagAspNet = new Tag { Name = "aspnet" };
-        var tagEfCore = new Tag { Name = "efcore" };
-        var tagSprint = new Tag { Name = "sprint" };
-
-        context.Tags.AddRange(tagAspNet, tagEfCore, tagSprint);
-        context.SaveChanges();
-
-        var notes = new[]
-        {
-            new Note ()
-                {
-                    Title = "Заголовок 1",
-                    Content = "код, текст заметки 1 c тегами efcore и aspnet",
-                    CreatedAt = DateTime.UtcNow,
-
-                },
-            new Note()
-                {
-                    Title = "Заголовок 2",
-                    Content = "Код сохраненный в заметке 2 с тегом Sprint",
-                    CreatedAt = DateTime.UtcNow,
-                },
-            new Note()
-                {
-                    Title = "Заголовок 3",
-                    Content = "Код сохраненный в заметке 2 с тегом Sprint",
-                    CreatedAt = DateTime.UtcNow,
-                }
-        };
-
-        context.Notes.AddRange(notes);
-        context.SaveChanges();
-
-        var noteTags = new[]
-        {
-            new NoteTag { NoteId = notes[0].Id, TagId = tagAspNet.Id },
-            new NoteTag { NoteId = notes[0].Id, TagId = tagEfCore.Id },
-            new NoteTag { NoteId = notes[1].Id, TagId = tagSprint.Id },
-            new NoteTag { NoteId = notes[2].Id, TagId = tagSprint.Id }
-        };
-
-        context.NoteTags.AddRange(noteTags);
-        context.SaveChanges();
-
-        transaction.Commit();
-    }
-    catch
-    {
-        transaction.Rollback();
-        throw;
-    }
-}
-
-SeedData(app.Services);
+    pattern: "{controller=Notes}/{action=Index}/{id?}");
 
 app.Run();

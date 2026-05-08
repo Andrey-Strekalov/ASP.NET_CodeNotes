@@ -1,4 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using System.ComponentModel.DataAnnotations;
 
 namespace ASP.NET_CodeNotes.Models;
 
@@ -16,5 +18,12 @@ public class Tag : IHasUpdatedAt
     [DataType(DataType.DateTime)]
     public DateTime? UpdatedAt { get; set; }
 
+    [BindNever]
+    public string OwnerId { get; set; } = string.Empty;
+
+    [ValidateNever]
+    public User Owner { get; set; } = null!;
+
+    [ValidateNever]
     public ICollection<NoteTag> NoteTags { get; set; } = new List<NoteTag>();
 }

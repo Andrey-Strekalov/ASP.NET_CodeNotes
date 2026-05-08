@@ -1,0 +1,33 @@
+@model IReadOnlyList<ASP.NET_CodeNotes.Models.Note>
+
+@{
+    ViewData["Title"] = "Заметки";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="mb-0">Заметки</h2>
+    <a class="btn btn-primary" asp-controller="Notes" asp-action="Create">Создать</a>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-secondary">Пока нет заметок.</div>
+}
+else
+{
+    <div class="list-group">
+        @foreach (var note in Model)
+        {
+            <a class="list-group-item list-group-item-action" asp-controller="Notes" asp-action="Details" asp-route-id="@note.Id">
+                <div class="d-flex w-100 justify-content-between">
+                    <h5 class="mb-1">@note.Title</h5>
+                    <small class="text-muted">@note.CreatedAt.ToLocalTime().ToString("g")</small>
+                </div>
+                <div class="text-muted small">
+                    @string.Join(", ", note.NoteTags.Select(nt => nt.Tag.Name))
+                </div>
+            </a>
+        }
+    </div>
+}
+
