@@ -25,7 +25,7 @@
 - Защищённые маршруты (PrivateRoute / PublicRoute)
 
 ## Структура проекта
-
+```
 CODNOT/
 └── CODNOT/
 ├── Controllers/       — контроллеры
@@ -50,7 +50,7 @@ frontend/
 │   └── tags/          — TagList
 ├── context/           — AuthContext (хранение токена)
 └── services/          — api.js, authService.js
-
+```
 ## Запуск
 
 **Backend**
