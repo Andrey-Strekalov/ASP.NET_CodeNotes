@@ -13,6 +13,7 @@ public class ApplicationDbContext : IdentityDbContext<User>
     public DbSet<Note> Notes => Set<Note>();
     public DbSet<Tag> Tags => Set<Tag>();
     public DbSet<NoteTag> NoteTags => Set<NoteTag>();
+    public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
